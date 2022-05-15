@@ -388,7 +388,9 @@ impl<'a> RecoveryGuard<'a> {
 /// with associated storage parameters like disk pos, lsn, time.
 #[derive(Debug, Clone)]
 pub struct Page {
+    // 本次的更新, 也可能什么都没有.
     update: Option<Update>,
+    // 现有的更新和之前的内容.
     cache_infos: Vec<CacheInfo>,
 }
 
@@ -730,6 +732,8 @@ impl PageCache {
     /// Returns `Ok(new_key)` if the operation was successful. Returns
     /// `Err(None)` if the page no longer exists. Returns
     /// `Err(Some(actual_key))` if the atomic link fails.
+    ///
+    /// 尝试给 Page 添加一个新操作.
     pub(crate) fn link<'g>(
         &self,
         pid: PageId,
@@ -778,9 +782,11 @@ impl PageCache {
             }
         }
 
+        // `apply` 生成一个 new node.
         let node = old.as_node().apply(&new);
 
         // see if we should short-circuit replace
+        // 如果需要 CONSOLIDATE, 那么直接 replace.
         if old.cache_infos.len() >= PAGE_CONSOLIDATION_THRESHOLD {
             log::trace!("skipping link, replacing pid {} with {:?}", pid, node);
             let short_circuit = self.replace(pid, old, &node, guard)?;
@@ -802,6 +808,7 @@ impl PageCache {
         loop {
             // TODO handle replacement on threshold here instead
 
+            // 申请一段 log.
             let log_reservation =
                 self.log.reserve(LogKind::Link, pid, &new, guard)?;
             let lsn = log_reservation.lsn;
@@ -834,6 +841,7 @@ impl PageCache {
             page_ptr.cache_infos = new_cache_infos;
 
             debug_delay();
+            // 具体去 CAS.
             let result =
                 old.entry.compare_and_set(old.read, page_ptr, SeqCst, guard);
 
@@ -1220,6 +1228,7 @@ impl PageCacheInner {
             }
         }
 
+        // cas 写 Page
         let result =
             self.cas_page(pid, old, Update::Node(new), false, guard)?;
 

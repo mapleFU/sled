@@ -10,6 +10,8 @@ use super::{
 
 /// A snapshot of the state required to quickly restart
 /// the `PageCache` and `SegmentAccountant`.
+/// 
+/// 
 #[derive(PartialEq, Debug, Default)]
 #[cfg_attr(test, derive(Clone))]
 pub struct Snapshot {

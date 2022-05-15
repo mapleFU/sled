@@ -19,6 +19,7 @@ macro_rules! io_fail {
     };
 }
 
+/// Buffer aligned with 8kB.
 struct AlignedBuf(*mut u8, usize);
 
 impl AlignedBuf {
@@ -43,7 +44,9 @@ impl Drop for AlignedBuf {
 
 pub(crate) struct IoBuf {
     buf: Arc<UnsafeCell<AlignedBuf>>,
+    /// 对齐缓存的 u64.
     header: CachePadded<AtomicU64>,
+
     base: usize,
     pub offset: LogOffset,
     pub lsn: Lsn,
@@ -951,6 +954,10 @@ impl IoBufs {
     }
 }
 
+/**
+ * Below are public functions for IoBufs.
+ */
+
 pub(crate) fn roll_iobuf(iobufs: &Arc<IoBufs>) -> Result<usize> {
     let iobuf = iobufs.current_iobuf();
     let header = iobuf.get_header();
@@ -1156,6 +1163,7 @@ pub(in crate::pagecache) fn maybe_seal_and_write_iobuf(
         header::mk_sealed(header)
     };
 
+    // 只有争抢到信息的才能写对应的 IoBuf, 否则对应的不是 worker.
     let worked = iobuf.cas_header(header, sealed).is_ok();
     if !worked {
         return Ok(());

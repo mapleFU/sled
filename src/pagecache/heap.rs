@@ -29,7 +29,9 @@ const MIN_TRAILING_ZEROS: u64 = MIN_SZ.trailing_zeros() as u64;
 pub type SlabId = u8;
 pub type SlabIdx = u32;
 
-/// A unique identifier for a particular slot in the heap
+/// A unique identifier for a particular slot in the heap.
+/// 
+/// 内存中的 Heap 对象
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Copy, PartialOrd, Ord, Eq, PartialEq, Hash)]
 pub struct HeapId {

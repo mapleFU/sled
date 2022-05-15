@@ -159,6 +159,7 @@ impl Tree {
         V: Into<IVec>,
     {
         let value_ivec = value.into();
+        // RCU.
         let mut guard = pin();
         let _cc = concurrency_control::read();
         loop {
@@ -191,7 +192,8 @@ impl Tree {
         if out_of_bounds(key.len()) {
             bounds_error()?;
         }
-
+        
+        // 拿到这个 key 的 view.
         let View { node_view, pid, .. } =
             self.view_for_key(key.as_ref(), guard)?;
 
@@ -204,6 +206,7 @@ impl Tree {
         let (encoded_key, last_value) = node_view.node_kv_pair(key.as_ref());
         let last_value_ivec = last_value.map(IVec::from);
 
+        // 没有更新, 直接完成了.
         if value == last_value_ivec {
             // NB: always broadcast event
             if let Some(Some(res)) = subscriber_reservation.take() {
@@ -220,6 +223,7 @@ impl Tree {
             return Ok(Ok(last_value_ivec));
         }
 
+        // 生成一个 Link 对象.
         let frag = if let Some(value_ivec) = value.clone() {
             if out_of_bounds(value_ivec.len()) {
                 bounds_error()?;
@@ -1765,6 +1769,8 @@ impl Tree {
     // high because attempts to split it up have made
     // the inherent complexity of the operation more
     // challenging to understand.
+    //
+    // 拿到对应的包括 Merge/Split 的路径.
     #[allow(clippy::cognitive_complexity)]
     pub(crate) fn view_for_key<'g, K>(
         &self,

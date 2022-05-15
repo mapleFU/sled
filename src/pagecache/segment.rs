@@ -64,6 +64,8 @@ use crate::pagecache::*;
 use crate::*;
 
 /// A operation that can be applied asynchronously.
+/// 
+/// Link 是给一个 Page 链接一个新 Log, Replace 则是把之前的写入给串起来
 #[derive(Debug)]
 pub(crate) enum SegmentOp {
     Link {

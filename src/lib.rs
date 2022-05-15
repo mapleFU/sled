@@ -385,6 +385,8 @@ const fn debug_delay() {}
 
 /// Link denotes a tree node or its modification fragment such as
 /// key addition or removal.
+/// 
+/// Link 是一个更新对象.
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) enum Link {
     /// A new value is set for a given key

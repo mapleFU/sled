@@ -14,6 +14,8 @@ use crate::*;
 /// reservations placed at known log offsets, used
 /// for writing persistent data structures that need
 /// to know where to find persisted bits in the future.
+/// 
+/// Log 写到 IoBuf 里面, 然后按照需求 stable.
 #[derive(Debug)]
 pub struct Log {
     /// iobufs is the underlying lock-free IO write buffer.

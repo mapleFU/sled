@@ -4,6 +4,8 @@ use super::{HeapId, LogOffset};
 use crate::*;
 
 /// A pointer to a location on disk or an off-log heap item.
+/// 
+/// (log_offset, heap_id). 可能存储在文件上, 也可能在 heap 上.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum DiskPtr {
     /// Points to a value stored in the single-file log.
